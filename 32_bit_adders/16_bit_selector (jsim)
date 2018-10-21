@@ -1,0 +1,66 @@
+.subckt adder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n
+
+Xforce 1 constant1
+
+* Code for the 17th adder
+Xseventeena A[16] XB[16] 0 Sa[16] Ca[16] FA
+Xseventeenb A[16] XB[16] 1 Sb[16] Cb[16] FA
+Xadder_remaina A[31:17] XB[31:17] Ca[30:16] sa[31:17] Ca[31:17] FA
+Xadder_remainb A[31:17] XB[31:17] Cb[30:16] sb[31:17] Cb[31:17] FA
+
+
+Xmux c15#16 Sa[31:16] Sb[31:16] S[31:16] mux2
+
+* Compute the modified B inputs 
+Xxor2_XB ALUFN[0]#32 B[31:0] XB[31:0] xor2
+
+* Code for the first adder 
+Xfirst A[0] XB[0] ALUFN[0] S[0] C[0] FA
+
+* Code for remainder
+Xadder_remain A[15:1] XB[15:1] C[14:0] s[15:1] C[15:1] FA
+
+* Code for Z
+Xnor32 S[31:0] z nor32
+
+* Code for V
+// Invert those that need inverting 
+Xinv_s31 s[31] is inverter
+Xinv_A31 A[31] iA inverter
+Xinv_XB31 XB[31] iXB inverter
+
+Xand3_1 A[31] XB[31] is D and3
+Xand3_2 iA iXB s[31] E and3
+Xor2_v D E V or2
+
+* Code for N
+.connect S[31] N 
+
+.ends
+
+.subckt FA a b ci s co
+* find the sum
+Xxor2_ab a b 1 xor2
+Xxor2_abc 1 ci s xor2
+
+* find the carry out 
+Xnand2_ab a b 2 nand2
+Xnand2_bc b ci 3 nand2
+Xnand2_ac a ci 4 nand2
+xnand3 2 3 4 co nand3 
+
+.ends 
+
+.subckt nor32 s[31:0] z // 32 inputs: s0, s1... s31. 1 output z
+Xnor1 s[31:28] a nor4
+Xnor2 s[27:24] b nor4
+Xnor3 s[23:20] c nor4
+Xnor4 s[19:16] d nor4
+Xnor5 s[15:12] e nor4
+Xnor6 s[11:8] f nor4
+Xnor7 s[7:4] g nor4
+Xnor8 s[3:0] h nor4
+X1 a b c d x nand4
+X2 e f g h y nand4
+X3 x y z nor2
+.ends
