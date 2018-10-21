@@ -1,0 +1,133 @@
+*================================================================
+*  Optimized Gates
+*================================================================
+
+.subckt new_and2 a b z
+Xnand0 a b c nand2
+Xinv0 c z inverter
+.ends
+
+.subckt nor32 s[31:0] z // 32 inputs: s0, s1... s31. 1 output z
+Xnor1 s[31:28] a nor4
+Xnor2 s[27:24] b nor4
+Xnor3 s[23:20] c nor4
+Xnor4 s[19:16] d nor4
+Xnor5 s[15:12] e nor4
+Xnor6 s[11:8] f nor4
+Xnor7 s[7:4] g nor4
+Xnor8 s[3:0] h nor4
+X1 a b c d x nand4
+X2 e f g h y nand4
+X3 x y z nor2
+.ends
+
+*================================================================
+*  32-bit Adder with Carry select
+*================================================================
+
+.subckt adder32 op0 A[31:0] B[31:0] S[31:0] z v n
+
+* Convert to the XB
+Xxor op0#32 B[31:0] XB[31:0] xor2
+
+* Do for the first 16
+Xaddertop op0 A[15:0] XB[15:0] S[15:0] c16 adder16
+
+Xforce 1 constant1
+
+* Create for the last 16
+Xadderb 0 A[31:16] XB[31:16] S0[31:16] final_0 adder16
+Xadderc 1 A[31:16] XB[31:16] S1[31:16] final_1 adder16
+
+
+Xmux c16#16 S0[31:16] S1[31:16] S[31:16] mux2
+
+* Code for Z
+Xnor32 S[31:0] z nor32
+
+* Code for V
+// Invert those that need inverting 
+Xinv_s31 S[31] is inverter
+Xinv_A31 A[31] iA inverter
+Xinv_XB31 XB[31] iXB inverter
+
+Xnand3_1 A[31] XB[31] is D nand3
+Xnand3_2 iA iXB s[31] E nand3
+Xnor2_v D E V nand2
+
+* Code for N
+.connect S[31] N 
+
+.ends
+
+*================================================================
+*  16-bit Brent Kung Adder
+*================================================================
+.subckt top a b g p
+Xxor a b p xor2
+Xand a b g new_and2
+.ends
+
+.subckt black gik pik gk1j pk1j gij pij
+Xand1 pik pk1j pij new_and2
+Xnand1 pik gk1j 1 nand2
+Xinv gik ginv inverter
+Xnand2 ginv 1 gij nand2
+.ends
+
+.subckt grey gik pik gk1j gij
+Xnand1 pik gk1j 1 nand2
+Xinv gik ginv inverter
+Xnand2 ginv 1 gij nand2
+.ends
+
+.subckt adder16 op0 A[16:1] B[16:1] S[16:1] co
+X1 A[16:1] B[16:1] g[16:1] p[16:1] top
+
+.connect op0 g0
+.connect g0 g0_0
+
+X2a g1 p1 g0 g1_0 grey
+X2b g3 p3 g2 p2 g3_2 p3_2 black
+X2c g5 p5 g4 p4 g5_4 p5_4 black
+X2d g7 p7 g6 p6 g7_6 p7_6 black
+X2e g9 p9 g8 p8 g9_8 p9_8 black
+X2f g11 p11 g10 p10 g11_10 p11_10 black
+X2g g13 p13 g12 p12 g13_12 p13_12 black
+X2h g15 p15 g14 p14 g15_14 p15_14 black
+
+X3a g3_2 p3_2 g1_0 g3_0 grey
+X3b g7_6 p7_6 g5_4 p5_4 g7_4 p7_4 black
+X3c g11_10 p11_10 g9_8 p9_8 g11_8 p11_8 black
+X3d g15_14 p15_14 g13_12 p13_12 g15_12 p15_12 black
+
+X4a g7_4 p7_4 g3_0 g7_0 grey
+X4b g15_12 p15_12 g11_8 p11_8 g15_8 p15_8 black
+
+X5 g15_8 p15_8 g7_0 g15_0 grey
+
+X6 g11_8 p11_8 g7_0 g11_0 grey
+
+X7a g5_4 p5_4 g3_0 g5_0 grey
+X7b g9_8 p9_8 g7_0 g9_0 grey
+X7c g13_12 p13_12 g11_0 g13_0 grey
+
+X8a g2 p2 g1_0 g2_0 grey
+X8b g4 p4 g3_0 g4_0 grey
+X8c g6 p6 g5_0 g6_0 grey
+X8d g8 p8 g7_0 g8_0 grey
+X8e g10 p10 g9_0 g10_0 grey
+X8f g12 p12 g11_0 g12_0 grey
+X8g g14 p14 g13_0 g14_0 grey
+
+
+Xxor p[1:16] g0_0 g1_0 g2_0 g3_0 g4_0 g5_0 g6_0 g7_0 g8_0 g9_0 g10_0 g11_0 g12_0 g13_0 g14_0 g15_0 S[1:16] xor2
+
+Xco g16 p16 g15_0 co grey
+
+.ends
+
+
+*================================================================
+
+*================================================================
