@@ -1,0 +1,205 @@
+.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] z v n
+
+Xadder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n adder32
+Xcompare32 ALUFN[2:1] z v n cmp[31:0] compare32
+Xboole32 ALUFN[3:0] A[31:0] B[31:0] boole[31:0] boole32
+Xshift32 ALUFN[1:0] A[31:0] B[4:0] shift[31:0] shift32
+Xmult32 A[31:0] B[31:0] P[31:0] multiply 
+
+
+Xselect_32 ALUFN[1]#32 ALUFN[0]#32 s[31:0] P[31:0] s[31:0] 0#32 selector[31:0] mux4
+Xalu_32 ALUFN[5]#32 ALUFN[4]#32 selector[31:0] shift[31:0] boole[31:0] cmp[31:0] alu[31:0] mux4
+
+.ends
+
+.subckt multiply A[31:0] B[31:0] P[31:0]
+
+* Create the layers of end gate. Change the name, number of B, name of output
+Xand1 A[31:0] B[0]#32 O1a[31:0] and2
+Xand2 A[30:0] B[1]#31 O2a[30:0] and2
+Xand3 A[29:0] B[2]#30 O3a[29:0] and2
+Xand4 A[28:0] B[3]#29 O4a[28:0] and2
+Xand5 A[27:0] B[4]#28 O5a[27:0] and2
+Xand6 A[26:0] B[5]#27 O6a[26:0] and2
+Xand7 A[25:0] B[6]#26 O7a[25:0] and2
+Xand8 A[24:0] B[7]#25 O8a[24:0] and2
+Xand9 A[23:0] B[8]#24 O9a[23:0] and2
+Xand10 A[22:0] B[9]#23 O10a[22:0] and2
+Xand11 A[21:0] B[10]#22 O11a[21:0] and2
+Xand12 A[20:0] B[11]#21 O12a[20:0] and2
+Xand13 A[19:0] B[12]#20 O13a[19:0] and2
+Xand14 A[18:0] B[13]#19 O14a[18:0] and2
+Xand15 A[17:0] B[14]#18 O15a[17:0] and2
+Xand16 A[16:0] B[15]#17 O16a[16:0] and2
+Xand17 A[15:0] B[16]#16 O17a[15:0] and2
+Xand18 A[14:0] B[17]#15 O18a[14:0] and2
+Xand19 A[13:0] B[18]#14 O19a[13:0] and2
+Xand20 A[12:0] B[19]#13 O20a[12:0] and2
+Xand21 A[11:0] B[20]#12 O21a[11:0] and2
+Xand22 A[10:0] B[21]#11 O22a[10:0] and2
+Xand23 A[9:0] B[22]#10 O23a[9:0] and2
+Xand24 A[8:0] B[23]#9 O24a[8:0] and2
+Xand25 A[7:0] B[24]#8 O25a[7:0] and2
+Xand26 A[6:0] B[25]#7 O26a[6:0] and2
+Xand27 A[5:0] B[26]#6 O27a[5:0] and2
+Xand28 A[4:0] B[27]#5 O28a[4:0] and2
+Xand29 A[3:0] B[28]#4 O29a[3:0] and2
+Xand30 A[2:0] B[29]#3 O30a[2:0] and2
+Xand31 A[1:0] B[30]#2 O31a[1:0] and2
+Xand32 A[0] B[31] O32a[0] and2
+
+* Create the layers of Adders. First layer has 31 adders. Last layer has 30 adders
+Xadder1 0 0 O1a[31:1] 0 O2a[30:0] S1d[31:0] z0 v0 n0 adder32
+Xadder2 0 0#2 S1d[30:1] 0#2 O3a[29:0] S2d[31:0] z1 v1 n1 adder32
+Xadder3 0 0#3 S2d[29:1] 0#3 O4a[28:0] S3d[31:0] z2 v2 n2 adder32
+Xadder4 0 0#4 S3d[28:1] 0#4 O5a[27:0] S4d[31:0] z3 v3 n3 adder32
+Xadder5 0 0#5 S4d[27:1] 0#5 O6a[26:0] S5d[31:0] z4 v4 n4 adder32
+Xadder6 0 0#6 S5d[26:1] 0#6 O7a[25:0] S6d[31:0] z5 v5 n5 adder32
+Xadder7 0 0#7 S6d[25:1] 0#7 O8a[24:0] S7d[31:0] z6 v6 n6 adder32
+Xadder8 0 0#8 S7d[24:1] 0#8 O9a[23:0] S8d[31:0] z7 v7 n7 adder32
+Xadder9 0 0#9 S8d[23:1] 0#9 O10a[22:0] S9d[31:0] z8 v8 n8 adder32
+Xadder10 0 0#10 S9d[22:1] 0#10 O11a[21:0] S10d[31:0] z9 v9 n9 adder32
+Xadder11 0 0#11 S10d[21:1] 0#11 O12a[20:0] S11d[31:0] z10 v10 n10 adder32
+Xadder12 0 0#12 S11d[20:1] 0#12 O13a[19:0] S12d[31:0] z11 v11 n11 adder32
+Xadder13 0 0#13 S12d[19:1] 0#13 O14a[18:0] S13d[31:0] z12 v12 n12 adder32
+Xadder14 0 0#14 S13d[18:1] 0#14 O15a[17:0] S14d[31:0] z13 v13 n13 adder32
+Xadder15 0 0#15 S14d[17:1] 0#15 O16a[16:0] S15d[31:0] z14 v14 n14 adder32
+Xadder16 0 0#16 S15d[16:1] 0#16 O17a[15:0] S16d[31:0] z15 v15 n15 adder32
+Xadder17 0 0#17 S16d[15:1] 0#17 O18a[14:0] S17d[31:0] z16 v16 n16 adder32
+Xadder18 0 0#18 S17d[14:1] 0#18 O19a[13:0] S18d[31:0] z17 v17 n17 adder32
+Xadder19 0 0#19 S18d[13:1] 0#19 O20a[12:0] S19d[31:0] z18 v18 n18 adder32
+Xadder20 0 0#20 S19d[12:1] 0#20 O21a[11:0] S20d[31:0] z19 v19 n19 adder32
+Xadder21 0 0#21 S20d[11:1] 0#21 O22a[10:0] S21d[31:0] z20 v20 n20 adder32
+Xadder22 0 0#22 S21d[10:1] 0#22 O23a[9:0] S22d[31:0] z21 v21 n21 adder32
+Xadder23 0 0#23 S22d[9:1] 0#23 O24a[8:0] S23d[31:0] z22 v22 n22 adder32
+Xadder24 0 0#24 S23d[8:1] 0#24 O25a[7:0] S24d[31:0] z23 v23 n23 adder32
+Xadder25 0 0#25 S24d[7:1] 0#25 O26a[6:0] S25d[31:0] z24 v24 n24 adder32
+Xadder26 0 0#26 S25d[6:1] 0#26 O27a[5:0] S26d[31:0] z25 v25 n25 adder32
+Xadder27 0 0#27 S26d[5:1] 0#27 O28a[4:0] S27d[31:0] z26 v26 n26 adder32
+Xadder28 0 0#28 S27d[4:1] 0#28 O29a[3:0] S28d[31:0] z27 v27 n27 adder32
+Xadder29 0 0#29 S28d[3:1] 0#29 O30a[2:0] S29d[31:0] z28 v28 n28 adder32
+Xadder30 0 0#30 S29d[2:1] 0#30 O31a[1:0] S30d[31:0] z29 v29 n29 adder32
+Xadder31 0 0#31 S30d[1] 0#31 O32a[0] S31d[31:0] z30 v30 n30 adder32
+
+* Connect the respective outputs to the P
+.connect P[0] O1a[0]
+.connect P[1] S1d[0]
+.connect P[2] S2d[0]
+.connect P[3] S3d[0]
+.connect P[4] S4d[0]
+.connect P[5] S5d[0]
+.connect P[6] S6d[0]
+.connect P[7] S7d[0]
+.connect P[8] S8d[0]
+.connect P[9] S9d[0]
+.connect P[10] S10d[0]
+.connect P[11] S11d[0]
+.connect P[12] S12d[0]
+.connect P[13] S13d[0]
+.connect P[14] S14d[0]
+.connect P[15] S15d[0]
+.connect P[16] S16d[0]
+.connect P[17] S17d[0]
+.connect P[18] S18d[0]
+.connect P[19] S19d[0]
+.connect P[20] S20d[0]
+.connect P[21] S21d[0]
+.connect P[22] S22d[0]
+.connect P[23] S23d[0]
+.connect P[24] S24d[0]
+.connect P[25] S25d[0]
+.connect P[26] S26d[0]
+.connect P[27] S27d[0]
+.connect P[28] S28d[0]
+.connect P[29] S29d[0]
+.connect P[30] S30d[0]
+.connect P[31] S31d[0]
+.ends
+
+.subckt adder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n
+
+* Compute the modified B inputs 
+Xxor2_XB ALUFN[0]#32 B[31:0] XB[31:0] xor2
+
+* Code for the first adder 
+Xfirst A[0] XB[0] ALUFN[0] S[0] C[0] FA
+
+* Code for remainder
+Xadder_remain A[31:1] XB[31:1] C[30:0] s[31:1] C[31:1] FA
+
+* Code for Z
+// Declare the first 8 or gates
+Xor_8 s[7:0] s[15:8] s[23:16] s[31:24] out[7:0] or4
+Xor_4 out[7:4] out[3:0] out2[1:0] or4
+Xnor2_z out2[0] out2[1] Z nor2
+
+* Code for V
+// Invert those that need inverting 
+Xinv_s31 s[31] is inverter
+Xinv_A31 A[31] iA inverter
+Xinv_XB31 XB[31] iXB inverter
+
+Xand3_1 A[31] XB[31] is D and3
+Xand3_2 iA iXB s[31] E and3
+Xor2_v D E V or2
+
+* Code for N
+.connect S[31] N 
+
+.ends
+
+.subckt FA a b ci s co
+* find the sum
+Xxor2_ab a b 1 xor2
+Xxor2_abc 1 ci s xor2
+
+* find the carry out 
+Xnand2_ab a b 2 nand2
+Xnand2_bc b ci 3 nand2
+Xnand2_ac a ci 4 nand2
+xnand3 2 3 4 co nand3 
+
+.ends 
+
+.subckt compare32 ALUFN[2:1] z v n cmp[31:0]
+
+Xgnd cmp[31:1] constant0
+Xxor N V xor_result xor2
+Xor Z xor_result or_result or2
+Xmux_comp ALUFN[2] ALUFN[1] 0 xor_result z or_result cmp[0] mux4
+
+.ends
+
+.subckt boole32 ALUFN[3:0] A[31:0] B[31:0] boole[31:0]
+
+Xbool_32 A[31:0] B[31:0] ALUFN[0]#32 ALUFN[1]#32 ALUFN[2]#32 ALUFN[3]#32 boole[31:0] mux4
+
+.ends
+
+.subckt shift32 ALUFN[1:0] A[31:0] B[4:0] shift[31:0]
+
+* Code to shift left
+Xleft1 B[4]#32 A[31:0] A[15:0] 0#16 WL[31:0] mux2
+Xleft2 B[3]#32 WL[31:0] WL[23:0] 0#8 XL[31:0] mux2
+Xleft3 B[2]#32 XL[31:0] XL[27:0] 0#4 YL[31:0] mux2
+Xleft4 B[1]#32 YL[31:0] YL[29:0] 0#2 ZL[31:0] mux2
+Xleft5 B[0]#32 ZL[31:0] ZL[30:0] 0#1 SL[31:0] mux2
+
+* Code to shift right 
+Xright1 B[4]#32 A[31:0] 0#16 A[31:16] WR[31:0] mux2
+Xright2 B[3]#32 WR[31:0] 0#8 WR[31:8] XR[31:0] mux2
+Xright3 B[2]#32 XR[31:0] 0#4 XR[31:4] YR[31:0] mux2
+Xright4 B[1]#32 YR[31:0] 0#2 YR[31:2] ZR[31:0] mux2
+Xright5 B[0]#32 ZR[31:0] 0#1 ZR[31:1] SR[31:0] mux2
+
+* Code to shift right arithmatically 
+XrightA1 B[4]#32 A[31:0] A[31]#16 A[31:16] WRA[31:0] mux2
+XrightA2 B[3]#32 WRA[31:0] A[31]#8 WRA[31:8] XRA[31:0] mux2
+XrightA3 B[2]#32 XRA[31:0] A[31]#4 XRA[31:4] YRA[31:0] mux2
+XrightA4 B[1]#32 YRA[31:0] A[31]#2 YRA[31:2] ZRA[31:0] mux2
+XrightA5 B[0]#32 ZRA[31:0] A[31]#1 ZRA[31:1] SRA[31:0] mux2
+
+* Code to control the shift 
+Xcontrol ALUFN[1]#32 ALUFN[0]#32 SL[31:0] 0#32 SR[31:0] SRA[31:0] shift[31:0] mux4
+
+.ends
