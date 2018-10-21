@@ -1,0 +1,58 @@
+BC1.1
+xb1 := ODD(B1, op0);
+xb2 := ODD(B2, op0);
+xb3 := ODD(B3, op0);
+xb4 := ODD(B4, op0);
+
+xr1 := ODD(xb1, A1);
+xr2 := ODD(xb2, A2);
+xr3 := ODD(xb3, A3);
+xr4 := ODD(xb4, A4);
+
+nr1a := AND(op0, xr1);
+notnr1a := !nr1a;
+nr1b := AND(xb1, A1);
+notnr1b := NOT(nr1b);
+nr1c := AND(notnr1a, notnr1b);
+notnr1c := NOT(nr1c);
+
+nr2a := AND(notnr1c, xr2);
+notnr2a := NOT(nr2a);
+nr2b := AND(xb2, A2);
+notnr2b := NOT(nr2b);
+nr2c := AND(notnr2a, notnr2b);
+notnr2c := NOT(nr2c);
+
+nr3a := AND(notnr2c, xr3);
+notnr3a := NOT(nr3a);
+nr3b := AND(xb3, A3);
+notnr3b := NOT(nr3b);
+nr3c := AND(notnr3a, notnr3b);
+notnr3c := NOT(nr3c);
+
+srip := ODD(notnr3c, xr4);
+
+g1 := AND(A1,xb1);
+g2 := AND(A2,xb2);
+g3 := AND(A3,xb3);
+
+p1 := ODD(A1,xb1);
+p2 := ODD(A2,xb2);
+p3 := ODD(A3,xb3);
+p4 := ODD(A4,xb4);
+
+i1 := AND(p1,op0);
+i2 := AND(p3,g2);
+
+g1_0 := OR(i1,g1);
+g3_2 := OR(i2,g3);
+
+p3_2 := AND(p2,p3);
+
+i3 := AND(p3_2,g1_0);
+
+g3_0 := OR(g3_2,i3);
+
+s3 := ODD(g3_0,p4);
+
+ans := ODD(s3,srip);
