@@ -1,0 +1,82 @@
+.subckt adder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n
+
+Xforce 1 constant1
+// Block 1 (no wait)
+* First adder of first block
+Xfirst A[0] XB[0] ALUFN[0] S[0] C[0] FA
+*Code for the 8th adder
+Xfirst_eighth A[7:1] XB[7:1] C[6:0] s[7:1] C[7:1] FA
+
+// Block Wait
+* Code for the 9th adder
+Xninea A[8] XB[8] 0 Sa[8] Ca[8] FA
+Xnineb A[8] XB[8] 1 Sb[8] Cb[8] FA
+Xadder_remain8a A[15:9] XB[15:9] Ca[14:8] sa[15:9] Ca[15:9] FA
+Xadder_remain8b A[15:9] XB[15:9] Cb[14:8] sb[15:9] Cb[15:9] FA
+Xmux1 c7#8 Sa[15:8] Sb[15:8] S[15:8] mux2
+Xmux1a c7 Ca[15] Cb[15] C[15] mux2
+
+// Block wait
+* Code for the 17th adder
+Xseventeena A[16] XB[16] 0 Sa[16] Ca[16] FA
+Xseventeenb A[16] XB[16] 1 Sb[16] Cb[16] FA
+Xadder_remain17a A[23:17] XB[23:17] Ca[22:16] sa[23:17] Ca[23:17] FA
+Xadder_remain17b A[23:17] XB[23:17] Cb[22:16] sb[23:17] Cb[23:17] FA
+Xmux2 c15#8 Sa[23:16] Sb[23:16] S[23:16] mux2
+Xmux2a c15 Ca[23] Cb[23] C[23] mux2
+
+* Code for the 25th adder
+Xtwentyfivea A[24] XB[24] 0 Sa[24] Ca[24] FA
+Xtwentyfiveb A[24] XB[24] 1 Sb[24] Cb[24] FA
+Xadder_remain25a A[31:25] XB[31:25] Ca[30:24] sa[31:25] Ca[31:25] FA
+Xadder_remain25b A[31:25] XB[31:25] Cb[30:24] sb[31:25] Cb[31:25] FA
+Xmux3 c23#8 Sa[31:24] Sb[31:24] S[31:24] mux2
+
+
+* Compute the modified B inputs 
+Xxor2_XB ALUFN[0]#32 B[31:0] XB[31:0] xor2
+
+* Code for Z
+Xnor32 S[31:0] z nor32
+
+* Code for V
+// Invert those that need inverting 
+Xinv_s31 s[31] is inverter
+Xinv_A31 A[31] iA inverter
+Xinv_XB31 XB[31] iXB inverter
+
+Xand3_1 A[31] XB[31] is D and3
+Xand3_2 iA iXB s[31] E and3
+Xor2_v D E V or2
+
+* Code for N
+.connect S[31] N 
+
+.ends
+
+.subckt FA a b ci s co
+* find the sum
+Xxor2_ab a b 1 xor2
+Xxor2_abc 1 ci s xor2
+
+* find the carry out 
+Xnand2_ab a b 2 nand2
+Xnand2_bc b ci 3 nand2
+Xnand2_ac a ci 4 nand2
+xnand3 2 3 4 co nand3 
+
+.ends 
+
+.subckt nor32 s[31:0] z // 32 inputs: s0, s1... s31. 1 output z
+Xnor1 s[31:28] a nor4
+Xnor2 s[27:24] b nor4
+Xnor3 s[23:20] c nor4
+Xnor4 s[19:16] d nor4
+Xnor5 s[15:12] e nor4
+Xnor6 s[11:8] f nor4
+Xnor7 s[7:4] g nor4
+Xnor8 s[3:0] h nor4
+X1 a b c d x nand4
+X2 e f g h y nand4
+X3 x y z nor2
+.ends
