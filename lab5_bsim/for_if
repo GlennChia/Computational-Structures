@@ -1,0 +1,120 @@
+.include beta.uasm
+.include lab5checkoff.uasm
+
+count_bull_cows:
+	PUSH(LP) 
+	PUSH(BP)
+	MOVE(SP, BP)
+	
+	| Declare the registers for a and b
+	PUSH(R1) | Register for a 
+	PUSH(R2) | Register for b
+	LD(BP,-12,R1)  | store the value of a
+	LD(BP,-16,R2)  | store the value of b
+	
+	| int bulls, cows
+	PUSH(R3)  | Create a register to store bulls
+	PUSH(R4) | Create a register to store cows
+	
+	| Temporary registers
+	| int i, j, btemp, atry, btry, mask;
+	PUSH(R5) | Create a register to store the i (Bulls for loop)
+	PUSH(R6) | Create a register for j (Cows for loop)
+	PUSH(R7) | Create a register for k (Cows for loop)
+	PUSH(R8) | Create a register for btemp
+	PUSH(R9) | Create a register for atry
+	PUSH(R10) | Create a register for btry
+	PUSH(R11) | Create a register for mask
+	
+	| My own registers 
+	PUSH(R12) | For the first for loop
+	PUSH(R13) | a & mask
+	PUSH(R14) | b & mask
+	PUSH(R15) | store result of a & mask == b & mask
+	PUSH(R16) | For the second for loop
+	PUSH(R17) | Store the result of atry != 0xF
+	PUSH(R18) | For the third for loop
+	PUSH(R19) | Store result of btry == atry
+	
+	CMOVE(0, R3) | bulls = 0
+	CMOVE(0,R4) | cows = 0 
+	CMOVE(0xF, R11) | mask = 0xF  
+	CMOVE(0,R5) | Initialize i for the loop to 0
+	CMOVE(0,R6) | Initialize j for the loop to 0
+	CMOVE(0,R7) | Initialize k for the loop to 0
+	
+COUNT_BULLS:
+	CMPEQC(R5, 4, R12) | Condition for for loop
+	BT(R12, COUNT_COWS) | Move to cows once finsihed 
+	AND(R1,R11, R13) | a & mask
+	AND(R2, R11, R14) | b & mask
+	CMPEQ(R13,R14,R15) | a & mask == b & mask
+	BF(R15, ELSE_BULLS) | Branch only if false to the else
+	ADDC(R3,1,R3) | Increment Bulls by 1
+	OR(R1,R11,R1) | a or mask
+	OR(R2,R11,R2) | b or mask
+	
+ELSE_BULLS:
+	SHLC(R11,4,R11)
+	ADDC(R5,1,R5)
+	BR(COUNT_BULLS)
+	
+COUNT_COWS:
+	CMPEQC(R6, 4, R16) | Condition for for loop
+	BT(R16, ENDING) | Move to ending once finsihed 
+	ADDC(R6, 1, R6) | Increment j by 1
+	ANDC(R1,0xF,R9) | atry = a & 0xF 
+	SRAC(R1,4,R1) | shift a right by 4 bits 
+	
+IF_ATRY:
+	CMPEQC(R9,0xF,R17) | atry != 0xF
+	BT(R17, COUNT_COWS) | If equal branch to for loop. a already incremented
+	ADDC(R2,0,R8) | btemp = b
+	CMOVE(0xF, R11) | mask = 0xF;
+	CMOVE(0,R7) | Initialise the k to be 0
+
+SECOND_FOR:
+	CMPEQC(R7, 4, R18) | Condition for for loop
+	BT(R18, COUNT_COWS)
+	ADDC(R7,1,R7) | Increment the k by 1 
+	ANDC(R8 ,0xF, R10) | btry = btemp & 0xF
+	SRAC(R8,4,R8) | btemp = btemp >> 4
+	
+IF_BTRY:
+	CMPEQ(R10,R9,R19) | btry == atry
+	BF(R19, ELSE_COW)
+	ADDC(R4,1,R4) | cows = cows + 1;
+	OR(R2,R11,R2) | b = b or mask;
+	BR(COUNT_COWS) | break
+
+ELSE_COW:
+	SHLC(R11,4,R11) | mask = mask << 4
+	BR(SECOND_FOR)
+	
+ENDING:
+	SHLC(R3,4,R3) | bulls << 4  
+	ADD(R3,R4,R0) | Add cows
+	POP(R19)
+	POP(R18)
+	POP(R17)
+	POP(R16)
+	POP(R15)
+	POP(R14)
+	POP(R13)
+	POP(R12)
+	POP(R11)
+	POP(R10)
+	POP(R8)
+	POP(R7)
+	POP(R6)
+	POP(R5)
+	POP(R4)
+	POP(R3)
+	POP(R2)
+	POP(R1)
+	MOVE(BP,SP)
+	POP(BP)
+	POP(LP)
+	JMP(LP)
+	
+StackBase: LONG(.+4) | Pointer to bottom of stack. = .+0x1000 | Reserve space for stack...
