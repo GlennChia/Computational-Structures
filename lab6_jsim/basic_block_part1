@@ -1,0 +1,37 @@
+.include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\nominal.jsim"
+.include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\stdcell.jsim"
+.include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\lab6basicblock.jsim"
+
+// from jsim documentation
+.subckt knex a b
+.connect a b
+.ends
+
+// For the beta
+.subckt beta clk reset ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
+
+Xpc clk reset ia[31:0] pc
+Xregfile clk werf ra2sel id[20:16] id[15:11] id[25:21] wdata[31:0] radata[31:0] mwd[31:0] regfile
+Xctl reset id[31:26] ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr ctl
+Xalu alufn[5:0] radata[31:0] b[31:0] ma[31:0] z v n alu
+
+* sign extend the low order 16 bits of the instruction. 
+* This instruction is the D on the Instruction Memory 
+// We are sign extending the lower 16 bits of id[31:0]
+
+// Connect the lower 16 bits to each other since they are the same 
+Xlow16bsel inst[15:0] id[15:0] knex
+// Connect the upper 16 bits to the 16th bit from id[31:0]
+.connect inst[31:16] id[15]  // This connects all the nodes together 
+
+// Mux for bsel
+Xbsel bsel#32 mwd[31:0] inst[31:0] b[31:0] mux2
+
+
+* WDSEL mux. only need for 01 (ALU output) and 10 (Read data from main memory)
+// ma[31:0] is the output of the ALU 
+// mrd[31:0] is the read data from the data memory 
+// mwd[31:0] is the write data into the main memory 
+Xwdsel wdsel[1]#32 wdsel[0]#32 0#32 mrd[31:0] ma[31:0] 0#32  wdata[31:0] mux4
+
+.ends
