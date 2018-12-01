@@ -1,0 +1,28 @@
+.subckt regfile clk werf ra2sel ra[4:0] rb[4:0] rc[4:0]
++ wdata[31:0] radata[31:0] rbdata[31:0] wa[4:0]
+
+* For the ra2sel 
+Xselect ra2sel#5 rb[4:0] rc[4:0] ra2mux[4:0] mux2 
+
+* For the r31 register first check
+Xand4_1 ra[4:0] check1 and5
+
+* For the r31 register second check
+Xand4_2 ra2mux[4:0] check2 and5
+
+Xregfile 
++ vdd 0 0 ra[4:0] adata[31:0] // A read port 
++ vdd 0 0 ra2mux[4:0] bdata[31:0] // B read port 
++ 0 clk werf rc[4:0] wdata[31:0] // write port 
++ $memory width=32 nlocations=31
+
+* Mux to select which address to pass through
+Xmux2a check1#32 adata[31:0] 0#32 radata[31:0] mux2
+Xmux2b check2#32 bdata[31:0] 0#32 rbdata[31:0] mux2
+
+.ends
+
+.subckt and5 a[4:0] c 
+Xand4 a[4:1] d and4
+Xand2 d a[0] c and2
+.ends
