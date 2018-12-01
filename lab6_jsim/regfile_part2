@@ -13,7 +13,7 @@ Xand4_2 ra2mux[4:0] check2 and5
 Xregfile 
 + vdd 0 0 ra[4:0] adata[31:0] // A read port 
 + vdd 0 0 ra2mux[4:0] bdata[31:0] // B read port 
-+ 0 clk werf rc[4:0] wdata[31:0] // write port 
++ 0 clk werf wa[4:0] wdata[31:0] // write port 
 + $memory width=32 nlocations=31
 
 * Mux to select which address to pass through
