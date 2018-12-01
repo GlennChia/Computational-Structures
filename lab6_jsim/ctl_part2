@@ -1,0 +1,115 @@
+* From part 1, add an additional input which is z
+* From part 1, add an additional output which is pcsel[2:0]
+.subckt ctl reset z id[31:26] ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr pcsel[2:0]
+
+* PART 2(F) Code for the branching 
+// The difference between between BNE and BEQ is the 5th bit and 6th bit. BNE(10), BEQ(01)
+// If Z = 0 branch for BNE. If Z = 1 branch for BEQ
+
+// Check for the first bit which is 0 for both BEQ and BNE
+Xnor_5 id[31] 0 fs nor2
+// Check for the next 3 bits which are 1 
+Xand_4_2 id[30] id[29] id[28] sfs and3
+
+// Check for BNE. Last 2 bits are 10
+Xand_1_bne id[27] vdd bne_1 and2
+Xnor_0_bne id[26] 0 bne_0 nor2
+// Overall BNE 
+Xbne fs sfs bne_1 bne_0 bne_o and4
+// Check for Z. Branch if Z=0. Invert bne_0 and then use nor2
+Xinv_bne bne_o bne_inv inverter
+Xnor_z z bne_inv bne_f nor2
+
+// Check for BEQ. Last 2 bits are 01
+Xnor_1_beq id[27] 0 beq_1 nor2
+Xand_0_beq id[26] vdd beq_0 and2
+// Overeall BEQ
+Xbeq fs sfs beq_1 beq_0 beq_o and4
+// Check for Z. Branch if Z=1
+Xand_z z beq_0 beq_f and2
+
+Xbnechoose bne_f#3 pcsel_old[2:0] 0#2 vdd pcsel_bne[2:0] mux2
+Xbeqchoose beq_f#3 pcsel_bne[2:0] 0#2 vdd pcsel[2:0] mux2
+
+* Force WR to 0 when RESET = 1 
+Xw_1 reset xwr 0 wr mux2
+
+* Modify the pcsel to pcsel_old just for branching
+Xctl vdd 0 0 id[31:26] // one read port 
++ pcsel_old[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe xwr 
++ $memory width=18 nlocations=64 contents=( 
++ 0b000000000000000000 // opcode=0b000000 
++ 0b000000000000000000 // opcode=0b000001 
++ 0b000000000000000000 // opcode=0b000010 
++ 0b000000000000000000 // opcode=0b000011 
++ 0b000000000000000000 // opcode=0b000100 
++ 0b000000000000000000 // opcode=0b000101 
++ 0b000000000000000000 // opcode=0b000110 
++ 0b000000000000000000 // opcode=0b000111 
+
++ 0b000000000000000000 // opcode=0b001000 
++ 0b000000000000000000 // opcode=0b001001 
++ 0b000000000000000000 // opcode=0b001010 
++ 0b000000000000000000 // opcode=0b001011 
++ 0b000000000000000000 // opcode=0b001100
++ 0b000000000000000000 // opcode=0b001101
++ 0b000000000000000000 // opcode=0b001110
++ 0b000000000000000000 // opcode=0b001111
+
++ 0b000000000000000000 // opcode=0b010000 
++ 0b000000000000000000 // opcode=0b010001 
++ 0b000000000000000000 // opcode=0b010010 
++ 0b000000000000000000 // opcode=0b010011 
++ 0b000000000000000000 // opcode=0b010100
++ 0b000000000000000000 // opcode=0b010101
++ 0b000000000000000000 // opcode=0b010110
++ 0b000000000000000000 // opcode=0b010111
+
++ 0b000000100000010110 // LD opcode=0b011000
++ 0b000001100000000001 // ST opcode=0b011001
++ 0b000000000000000000 // opcode=0b011010 
++ 0b010000000000000100 // JMP opcode=0b011011 
++ 0b000000000000000000 // opcode=0b011100
++ 0b000000000000000100 // BEQ opcode=0b011101
++ 0b000000000000000100 // BNE opcode=0b011110
++ 0b000010001101010110 // LDR opcode=0b011111. ALUFN=011010
+
++ 0b000000000000001100 // ADD opcode=0b100000 
++ 0b000000000000101100 // SUB opcode=0b100001 
++ 0b000000000000000000 // opcode=0b100010 
++ 0b000000000000000000 // opcode=0b100011 
++ 0b000000011001101100 // CMPEQ opcode=0b100100
++ 0b000000011010101100 // CMPLT opcode=0b100101
++ 0b000000011011101100 // CMPLE opcode=0b100110
++ 0b000000000000000000 // opcode=0b100111
+
++ 0b000000001100001100 // AND opcode=0b101000 
++ 0b000000001111001100 // OR opcode=0b101001 
++ 0b000000001011001100 // XOR opcode=0b101010 
++ 0b000000000000000000 // opcode=0b101011 
++ 0b000000010000001100 // SHL opcode=0b101100
++ 0b000000010000101100 // SHR opcode=0b101101
++ 0b000000010001101100 // SRA opcode=0b101110
++ 0b000000000000000000 // opcode=0b101111
+
++ 0b000000100000001100 // ADDC opcode=0b110000 
++ 0b000000100000101100 // SUBC opcode=0b110001 
++ 0b000000000000000000 // opcode=0b110010 
++ 0b000000000000000000 // opcode=0b110011 
++ 0b000000111001101100 // CMPEQC opcode=0b110100
++ 0b000000111010101100 // CMPLTC opcode=0b110101
++ 0b000000111011101100 // CMPLEC opcode=0b110110
++ 0b000000000000000000 // opcode=0b110111
+
++ 0b000000101100001100 // ANDC opcode=0b111000 
++ 0b000000101111001100 // ORC opcode=0b111001 
++ 0b000000101011001100 // XORC opcode=0b111010 
++ 0b000000000000000000 // opcode=0b111011 
++ 0b000000110000001100 // SHLC opcode=0b111100
++ 0b000000110000101100 // SHRC opcode=0b111101
++ 0b000000110001101100 // SRAC opcode=0b111110
++ 0b000000000000000000 // opcode=0b111111
+
++)
+
+.ends
