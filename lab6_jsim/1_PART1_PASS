@@ -1,0 +1,279 @@
+.include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\nominal.jsim"
+.include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\stdcell.jsim"
+.include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\lab6basicblock.jsim"
+
+// from jsim documentation
+.subckt knex a b
+.connect a b
+.ends
+
+// For the beta
+.subckt beta clk reset ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
+
+Xpc clk reset ia[31:0] pc
+Xregfile clk werf ra2sel id[20:16] id[15:11] id[25:21] wdata[31:0] radata[31:0] mwd[31:0] regfile
+Xctl reset id[31:26] ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr ctl
+Xalu alufn[5:0] radata[31:0] b[31:0] ma[31:0] z v n alu
+
+* sign extend the low order 16 bits of the instruction. 
+* This instruction is the D on the Instruction Memory 
+// We are sign extending the lower 16 bits of id[31:0]
+
+// Connect the lower 16 bits to each other since they are the same 
+Xlow16bsel inst[15:0] id[15:0] knex
+// Connect the upper 16 bits to the 16th bit from id[31:0]
+.connect inst[31:16] id[15]  // This connects all the nodes together 
+
+// Mux for bsel
+Xbsel bsel#32 mwd[31:0] inst[31:0] b[31:0] mux2
+
+
+* WDSEL mux. only need for 01 (ALU output) and 10 (Read data from main memory)
+// ma[31:0] is the output of the ALU 
+// mrd[31:0] is the read data from the data memory 
+// mwd[31:0] is the write data into the main memory 
+Xwdsel wdsel[1]#32 wdsel[0]#32 0#32 mrd[31:0] ma[31:0] 0#32  wdata[31:0] mux4
+
+.ends
+
+.subckt pc clk reset ia[31:0]
+
+* Code for the reset
+Xres reset#32 inc[31:0] 0#32 mid[31:0] mux2
+
+* Code for the dreg 
+Xdreg mid[31:0] clk#32 ia[31:0] dreg
+
+Xforce a constant1
+
+* Code for the increment by 4
+Xincrease 0 ia[31:0] 0#29 a 0#2 inc[31:0] adder32only
+
+.ends 
+
+.subckt adder32only ALUFN[0] A[31:0] B[31:0] S[31:0]
+
+* Compute the modified B inputs 
+Xxor2_XB ALUFN[0]#32 B[31:0] XB[31:0] xor2
+
+* Code for the first adder 
+Xfirst A[0] XB[0] ALUFN[0] S[0] C[0] FA
+
+* Code for remainder
+Xadder_remain A[31:1] XB[31:1] C[30:0] S[31:1] C[31:1] FA
+
+.ends
+
+.subckt FA a b ci s co
+* find the sum
+Xxor2_ab a b 1 xor2
+Xxor2_abc 1 ci s xor2
+
+* find the carry out 
+Xnand2_ab a b 2 nand2
+Xnand2_bc b ci 3 nand2
+Xnand2_ac a ci 4 nand2
+xnand3 2 3 4 co nand3 
+
+.ends 
+
+.subckt regfile clk werf ra2sel ra[4:0] rb[4:0] rc[4:0]
++ wdata[31:0] radata[31:0] rbdata[31:0]
+
+* For the ra2sel 
+Xselect ra2sel#5 rb[4:0] rc[4:0] ra2mux[4:0] mux2 
+
+* For the r31 register first check
+Xand4_1 ra[4:0] check1 and5
+
+* For the r31 register second check
+Xand4_2 ra2mux[4:0] check2 and5
+
+Xregfile 
++ vdd 0 0 ra[4:0] adata[31:0] // A read port 
++ vdd 0 0 ra2mux[4:0] bdata[31:0] // B read port 
++ 0 clk werf rc[4:0] wdata[31:0] // write port 
++ $memory width=32 nlocations=31
+
+* Mux to select which address to pass through
+Xmux2a check1#32 adata[31:0] 0#32 radata[31:0] mux2
+Xmux2b check2#32 bdata[31:0] 0#32 rbdata[31:0] mux2
+
+.ends
+
+.subckt and5 a[4:0] c 
+Xand4 a[4:1] d and4
+Xand2 d a[0] c and2
+.ends
+
+.subckt ctl reset id[31:26] ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr
+
+* Force WR to 0 when RESET = 1 
+Xw_1 reset xwr 0 wr mux2
+
+Xctl vdd 0 0 id[31:26] // one read port 
++ pcsel[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe xwr 
++ $memory width=18 nlocations=64 contents=( 
++ 0b000000000000000000 // opcode=0b000000 
++ 0b000000000000000000 // opcode=0b000001 
++ 0b000000000000000000 // opcode=0b000010 
++ 0b000000000000000000 // opcode=0b000011 
++ 0b000000000000000000 // opcode=0b000100 
++ 0b000000000000000000 // opcode=0b000101 
++ 0b000000000000000000 // opcode=0b000110 
++ 0b000000000000000000 // opcode=0b000111 
+
++ 0b000000000000000000 // opcode=0b001000 
++ 0b000000000000000000 // opcode=0b001001 
++ 0b000000000000000000 // opcode=0b001010 
++ 0b000000000000000000 // opcode=0b001011 
++ 0b000000000000000000 // opcode=0b001100
++ 0b000000000000000000 // opcode=0b001101
++ 0b000000000000000000 // opcode=0b001110
++ 0b000000000000000000 // opcode=0b001111
+
++ 0b000000000000000000 // opcode=0b010000 
++ 0b000000000000000000 // opcode=0b010001 
++ 0b000000000000000000 // opcode=0b010010 
++ 0b000000000000000000 // opcode=0b010011 
++ 0b000000000000000000 // opcode=0b010100
++ 0b000000000000000000 // opcode=0b010101
++ 0b000000000000000000 // opcode=0b010110
++ 0b000000000000000000 // opcode=0b010111
+
++ 0b000000100000010110 // LD opcode=0b011000
++ 0b000001100000000001 // ST opcode=0b011001
++ 0b000000000000000000 // opcode=0b011010 
++ 0b000000000000000000 // JMP opcode=0b011011 
++ 0b000000000000000000 // opcode=0b011100
++ 0b000000000000000000 // BEQ opcode=0b011101
++ 0b000000000000000000 // BNE opcode=0b011110
++ 0b000000000000000000 // LDR opcode=0b011111
+
++ 0b000000000000001100 // ADD opcode=0b100000 
++ 0b000000000000101100 // SUB opcode=0b100001 
++ 0b000000000000000000 // opcode=0b100010 
++ 0b000000000000000000 // opcode=0b100011 
++ 0b000000011001101100 // CMPEQ opcode=0b100100
++ 0b000000011010101100 // CMPLT opcode=0b100101
++ 0b000000011011101100 // CMPLE opcode=0b100110
++ 0b000000000000000000 // opcode=0b100111
+
++ 0b000000001100001100 // AND opcode=0b101000 
++ 0b000000001111001100 // OR opcode=0b101001 
++ 0b000000001011001100 // XOR opcode=0b101010 
++ 0b000000000000000000 // opcode=0b101011 
++ 0b000000010000001100 // SHL opcode=0b101100
++ 0b000000010000101100 // SHR opcode=0b101101
++ 0b000000010001101100 // SRA opcode=0b101110
++ 0b000000000000000000 // opcode=0b101111
+
++ 0b000000100000001100 // ADDC opcode=0b110000 
++ 0b000000100000101100 // SUBC opcode=0b110001 
++ 0b000000000000000000 // opcode=0b110010 
++ 0b000000000000000000 // opcode=0b110011 
++ 0b000000111001101100 // CMPEQC opcode=0b110100
++ 0b000000111010101100 // CMPLTC opcode=0b110101
++ 0b000000111011101100 // CMPLEC opcode=0b110110
++ 0b000000000000000000 // opcode=0b110111
+
++ 0b000000101100001100 // ANDC opcode=0b111000 
++ 0b000000101111001100 // ORC opcode=0b111001 
++ 0b000000101011001100 // XORC opcode=0b111010 
++ 0b000000000000000000 // opcode=0b111011 
++ 0b000000110000001100 // SHLC opcode=0b111100
++ 0b000000110000101100 // SHRC opcode=0b111101
++ 0b000000110001101100 // SRAC opcode=0b111110
++ 0b000000000000000000 // opcode=0b111111
+
++)
+
+.ends
+
+.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] z v n
+
+Xadder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n adder32
+Xcompare32 ALUFN[2:1] z v n cmp[31:0] compare32
+Xboole32 ALUFN[3:0] A[31:0] B[31:0] boole[31:0] boole32
+Xshift32 ALUFN[1:0] A[31:0] B[4:0] shift[31:0] shift32
+
+Xalu_32 ALUFN[5]#32 ALUFN[4]#32 s[31:0] shift[31:0] boole[31:0] cmp[31:0] alu[31:0] mux4
+
+.ends
+
+.subckt adder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n
+
+* Compute the modified B inputs 
+Xxor2_XB ALUFN[0]#32 B[31:0] XB[31:0] xor2
+
+* Code for the first adder 
+Xfirst A[0] XB[0] ALUFN[0] S[0] C[0] FA
+
+* Code for remainder
+Xadder_remain A[31:1] XB[31:1] C[30:0] S[31:1] C[31:1] FA
+
+* Code for Z
+// Declare the first 8 or gates
+Xor_8 S[7:0] S[15:8] S[23:16] S[31:24] out[7:0] or4
+Xor_4 out[7:4] out[3:0] out2[1:0] or4
+Xnor2_z out2[0] out2[1] Z nor2
+
+* Code for V
+// Invert those that need inverting 
+Xinv_s31 s[31] is inverter
+Xinv_A31 A[31] iA inverter
+Xinv_XB31 XB[31] iXB inverter
+
+Xand3_1 A[31] XB[31] is D and3
+Xand3_2 iA iXB s[31] E and3
+Xor2_v D E V or2
+
+* Code for N
+.connect S[31] N 
+
+.ends
+
+
+.subckt compare32 ALUFN[2:1] z v n cmp[31:0]
+
+Xgnd cmp[31:1] constant0
+Xxor N V xor_result xor2
+Xor Z xor_result or_result or2
+Xmux_comp ALUFN[2] ALUFN[1] 0 xor_result z or_result cmp[0] mux4
+
+.ends
+
+.subckt boole32 ALUFN[3:0] A[31:0] B[31:0] boole[31:0]
+
+Xbool_32 A[31:0] B[31:0] ALUFN[0]#32 ALUFN[1]#32 ALUFN[2]#32 ALUFN[3]#32 boole[31:0] mux4
+
+.ends
+
+.subckt shift32 ALUFN[1:0] A[31:0] B[4:0] shift[31:0]
+
+* Code to shift left
+Xleft1 B[4]#32 A[31:0] A[15:0] 0#16 WL[31:0] mux2
+Xleft2 B[3]#32 WL[31:0] WL[23:0] 0#8 XL[31:0] mux2
+Xleft3 B[2]#32 XL[31:0] XL[27:0] 0#4 YL[31:0] mux2
+Xleft4 B[1]#32 YL[31:0] YL[29:0] 0#2 ZL[31:0] mux2
+Xleft5 B[0]#32 ZL[31:0] ZL[30:0] 0#1 SL[31:0] mux2
+
+* Code to shift right 
+Xright1 B[4]#32 A[31:0] 0#16 A[31:16] WR[31:0] mux2
+Xright2 B[3]#32 WR[31:0] 0#8 WR[31:8] XR[31:0] mux2
+Xright3 B[2]#32 XR[31:0] 0#4 XR[31:4] YR[31:0] mux2
+Xright4 B[1]#32 YR[31:0] 0#2 YR[31:2] ZR[31:0] mux2
+Xright5 B[0]#32 ZR[31:0] 0#1 ZR[31:1] SR[31:0] mux2
+
+* Code to shift right arithmatically 
+XrightA1 B[4]#32 A[31:0] A[31]#16 A[31:16] WRA[31:0] mux2
+XrightA2 B[3]#32 WRA[31:0] A[31]#8 WRA[31:8] XRA[31:0] mux2
+XrightA3 B[2]#32 XRA[31:0] A[31]#4 XRA[31:4] YRA[31:0] mux2
+XrightA4 B[1]#32 YRA[31:0] A[31]#2 YRA[31:2] ZRA[31:0] mux2
+XrightA5 B[0]#32 ZRA[31:0] A[31]#1 ZRA[31:1] SRA[31:0] mux2
+
+* Code to control the shift 
+Xcontrol ALUFN[1]#32 ALUFN[0]#32 SL[31:0] 0#32 SR[31:0] SRA[31:0] shift[31:0] mux4
+
+.ends
+
