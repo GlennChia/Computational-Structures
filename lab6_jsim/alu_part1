@@ -1,4 +1,4 @@
-.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] z v n
+.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] 
 
 Xadder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n adder32
 Xcompare32 ALUFN[2:1] z v n cmp[31:0] compare32
