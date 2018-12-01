@@ -4,7 +4,8 @@
 
 * PART 2(F) Code for the branching 
 // The difference between between BNE and BEQ is the 5th bit and 6th bit. BNE(10), BEQ(01)
-// If Z = 0 branch for BNE. If Z = 1 branch for BEQ
+// For BEQ, if z=1, set PCSEL to 1 else set to 0
+// For BNE, if z=1, set PCSEL to 0 else set to 1
 
 // Check for the first bit which is 0 for both BEQ and BNE
 Xnor_5 id[31] 0 fs nor2
@@ -15,10 +16,9 @@ Xand_4_2 id[30] id[29] id[28] sfs and3
 Xand_1_bne id[27] vdd bne_1 and2
 Xnor_0_bne id[26] 0 bne_0 nor2
 // Overall BNE 
-Xbne fs sfs bne_1 bne_0 bne_o and4
-// Check for Z. Branch if Z=0. Invert bne_0 and then use nor2
-Xinv_bne bne_o bne_inv inverter
-Xnor_z z bne_inv bne_f nor2
+Xbne fs sfs bne_1 bne_0 bne_o and4  // this will be 1 if it is BNE 
+// Check for Z = 1
+Xand_z_bne z bne_o bne_f and2
 
 // Check for BEQ. Last 2 bits are 01
 Xnor_1_beq id[27] 0 beq_1 nor2
@@ -28,7 +28,7 @@ Xbeq fs sfs beq_1 beq_0 beq_o and4
 // Check for Z. Branch if Z=1
 Xand_z z beq_0 beq_f and2
 
-Xbnechoose bne_f#3 pcsel_old[2:0] 0#2 vdd pcsel_bne[2:0] mux2
+Xbnechoose bne_f#3 pcsel_old[2:0] 0#3 pcsel_bne[2:0] mux2
 Xbeqchoose beq_f#3 pcsel_bne[2:0] 0#2 vdd pcsel[2:0] mux2
 
 * Force WR to 0 when RESET = 1 
