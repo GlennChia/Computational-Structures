@@ -13,7 +13,7 @@
 Xpc clk reset ia[31:0] pc
 Xregfile clk werf ra2sel id[20:16] id[15:11] id[25:21] wdata[31:0] radata[31:0] mwd[31:0] regfile
 Xctl reset id[31:26] ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr ctl
-Xalu alufn[5:0] radata[31:0] b[31:0] ma[31:0] z v n alu
+Xalu alufn[5:0] radata[31:0] b[31:0] ma[31:0] alu
 
 * sign extend the low order 16 bits of the instruction. 
 * This instruction is the D on the Instruction Memory 
@@ -190,7 +190,7 @@ Xctl vdd 0 0 id[31:26] // one read port
 
 .ends
 
-.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] z v n
+.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0]
 
 Xadder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n adder32
 Xcompare32 ALUFN[2:1] z v n cmp[31:0] compare32
