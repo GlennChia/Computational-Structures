@@ -2,14 +2,18 @@
 .include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\stdcell.jsim"
 .include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\lab6checkoff.jsim"
 
+// From jsim documentation 
+.subckt knex a b
+.connect a b 
+.ends
+
 .subckt beta clk reset irq ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
 
-*Part 2A4
+*Part 2A4 and 2D (Partial)
 * Code for asel
-// Set bit 31 of the BT to 0
-.connect bt[31] 0
-// Code for the asel mux. If 0 choose radata[31:0]. If 1 choose bt[31:0]
-Xasel asel#32 radata[31:0] bt[31:0] a[31:0] mux2 
+// Set bit 31 of the BT to 0. Dont use.connect, produces an error
+// Code for the asel mux. If 0 choose radata[31:0]. If 1 choose bt[31:0].
+Xasel asel#32 radata[31:0] 0 bt[30:0] a[31:0] mux2 
 
 * Part 2B. Code for WASEL
 // XP is register 30 which is 11110
@@ -20,14 +24,14 @@ Xwasel wasel#5 id[25:21] xp[4:0] wa[4:0] mux2
 * Part 2D. Get the Z with nor32
 Xor_8 radata[7:0] radata[15:8] radata[23:16] radata[31:24] out[7:0] or4
 Xor_4 out[7:4] out[3:0] out2[1:0] or4
-Xnor2_z out2[0] out2[1] Z nor2
+Xnor2_z out2[0] out2[1] z nor2
 
 * Part 2E. WDSEL Mux
 * only need for 01 (ALU output) and 10 (Read data from main memory) and 00 which is inc[31:0]
 // ma[31:0] is the output of the ALU 
 // mrd[31:0] is the read data from the data memory 
 // mwd[31:0] is the write data into the main memory 
-Xwdsel wdsel[1]#32 wdsel[0]#32 inc[31:0] mrd[31:0] ma[31:0] 0#32  wdata[31:0] mux4
+Xwdsel wdsel[0]#32 wdsel[1]#32 inc[31:0] ma[31:0] mrd[31:0] 0#32  wdata[31:0] mux4
 
 * Part 2(F) IRQ Implementation
 // Interrupts occur when the ia[31] which is PC31 == 0 and irq == 1
@@ -48,7 +52,8 @@ Xinterrupt_WDSEL cont#2 0#2 wdsel_ctl[1:0] wdsel[1:0] mux2
 // Set WR to 0. 0==0 
 Xinterrupt_WR cont 0 wr_ctl wr mux2
 
-* From part 1 
+
+* From part 1 (Circuit calls and bselmux)
 
 * sign extend the low order 16 bits of the instruction. This instruction is the D on the Instruction Memory 
 // We are sign extending the lower 16 bits of id[31:0]
@@ -60,18 +65,18 @@ Xlow16bsel inst[15:0] id[15:0] knex
 Xbsel bsel#32 mwd[31:0] inst[31:0] b[31:0] mux2
 
 * Calling all the subcircuits 
-// .subckt pc clk reset pcsel[2:0] jt[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0] 
 // radata[31:0] passed into the PC to be modified later by the jt code
 // id[31:0] will be modified in the PC file as well
+// .subckt pc clk reset pcsel[2:0] jt[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0]
 Xpc clk reset pcsel[2:0] radata[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0] pc
 
 // Add the results from wasel mux wa[4:0]
 Xregfile clk werf ra2sel id[20:16] id[15:11] id[25:21] wdata[31:0] radata[31:0] mwd[31:0] wa[4:0] regfile
 
 // Add z, asel, pcsel_ctl[2:0], wasel_ctl
-Xctl reset z id[31:26] ra2sel bsel alufn[5:0] wdsel_ctl[1:0] werf_ctl moe wr_ctl asel pcsel_ctl[2:0] wasel_ctl
+Xctl reset z id[31:26] ra2sel bsel alufn[5:0] wdsel_ctl[1:0] werf_ctl moe wr_ctl asel pcsel_ctl[2:0] wasel_ctl ctl
 
-Xalu alufn[5:0] radata[31:0] b[31:0] ma[31:0] alu
-
+// Edited from part 1 to remove z v and n since z has name clash
+Xalu alufn[5:0] a[31:0] b[31:0] ma[31:0] alu
 
 .ends
