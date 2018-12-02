@@ -74,7 +74,7 @@ Xpc clk reset pcsel[2:0] radata[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0] pc
 Xregfile clk werf ra2sel id[20:16] id[15:11] id[25:21] wdata[31:0] radata[31:0] mwd[31:0] wa[4:0] regfile
 
 // Add z, asel, pcsel_ctl[2:0], wasel_ctl
-Xctl reset z id[31:26] ra2sel bsel alufn[5:0] wdsel_ctl[1:0] werf_ctl moe wr_ctl asel pcsel_ctl[2:0] wasel_ctl
+Xctl reset z id[31:26] ra2sel bsel alufn[5:0] wdsel_ctl[1:0] werf_ctl moe wr_ctl asel pcsel_ctl[2:0] wasel_ctl ctl
 
 Xalu alufn[5:0] radata[31:0] b[31:0] ma[31:0] alu
 
@@ -128,7 +128,7 @@ Xlow16bsel jt[30:2] ia_new[30:2] knex
 Xlow16bt id_shift[17:2] id[15:0] knex
 // Connect the upper 14 bits to the 16th bit from id[31:0]
 .connect id_shift[31:18] id[15]  // This connects all the nodes together 
-Xfinal_bt 0 inc[31:0] id_shift[31:0] bt[31:0] adder32_only
+Xfinal_bt 0 inc[31:0] id_shift[31:0] bt[31:0] adder32only
 
 * Code for the reset
 Xres reset#32 post_5mux[31:0] 0#32 mid[31:0] mux2
@@ -425,4 +425,3 @@ XrightA5 B[0]#32 ZRA[31:0] A[31]#1 ZRA[31:1] SRA[31:0] mux2
 Xcontrol ALUFN[1]#32 ALUFN[0]#32 SL[31:0] 0#32 SR[31:0] SRA[31:0] shift[31:0] mux4
 
 .ends
-
