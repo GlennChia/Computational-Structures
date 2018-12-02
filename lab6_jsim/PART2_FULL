@@ -2,6 +2,11 @@
 .include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\stdcell.jsim"
 .include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\lab6checkoff.jsim"
 
+// from jsim documentation
+.subckt knex a b
+.connect a b
+.ends
+
 .subckt beta clk reset irq ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
 
 *Part 2A4
@@ -76,6 +81,99 @@ Xalu alufn[5:0] radata[31:0] b[31:0] ma[31:0] alu
 
 .ends
 
+
+
+
+* Add the following inputs: pcsel[2:0], jt[31:0] id[31:0]. jt[31:0] os from radata[31:0]
+* Add the following outputs: inc[31:0] bt[31:0] 
+.subckt pc clk reset pcsel[2:0] jt[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0] 
+
+* PART 2A0 Use the 5 input Mux to select the mid 
+Xmux5 pcsel[2:0] inc[31:0] bt[31:0] ia_new[31:0] illop[31:0] xaddr[31:0] post5_mux[31:0] mux5
+
+* PART 2A1 Creating the addresses for the PC (Part2A.1)
+// 8 in binary is 1000
+// 4 in binary is 0010
+// Reset == 0x80000000 == 1000 0#28
+// Exceptions == 0x80000004 == 1000 0#24 0010
+// Interrupts == 0x80000008 == 1000 0#24 1000
+// previously used Xforce a constant1
+// Things that connect to a are reset_addr[31], xaddr[31], xaddr[1], illop[3]
+.connect a reset_addr[31] xaddr[31] xaddr[1] illop[3]
+.connect 0 reset_addr[30:0] xaddr[30:2] xaddr[0] illop[31:4] illop[2:0]
+
+* PART 2A2 Connect bit31 of the PC+4 and the branch offset-inputs to PC31 
+// PC31 is ia[31] 
+// Connect bit 31 of the PC+4 to PC31
+.connect inc[31] ia[31]
+// Connect bit 31 of the BT to PC31
+.connect ia[31] bt[31]
+
+* PART 2A3 and 2D
+* Adding logic to bit31 of the JT input (Part2A.3)
+Xjt_logic ia[31] jt[31] ia_new[31] and2
+// Force the low order 2 bits to 0
+.connect ia_new[1:0] 0
+// Copy the other untouched bits over 
+Xlow16bsel jt[30:2] ia_new[30:2] knex
+
+* PART 2A5 Connect bit 31 of the PC+4 input to the WDSEL
+.connect inc[31] ia[31]
+
+* PART 2C
+* c comes from the first 16 bits of the instruction memory. use id[31:0]
+// Connect the lower 2 bits of the id_shift
+.connect id_shift[1:0] 0
+// Connect id_shift[17:2] to id[15:0]
+Xlow16bt id_shift[17:2] id[15:0] knex
+// Connect the upper 14 bits to the 16th bit from id[31:0]
+.connect id_shift[31:18] id[15]  // This connects all the nodes together 
+Xfinal_bt 0 inc[31:0] id_shift[31:0] bt[31:0] adder32_only
+
+* Code for the reset
+Xres reset#32 post_5mux[31:0] 0#32 mid[31:0] mux2
+
+* Code for the dreg 
+Xdreg mid[31:0] clk#32 ia[31:0] dreg
+
+Xforce a constant1
+
+* Code for the increment by 4
+Xincrease 0 ia[31:0] 0#29 a 0#2 inc[31:0] adder32only
+
+.ends 
+
+.subckt adder32only ALUFN[0] A[31:0] B[31:0] S[31:0]
+
+* Compute the modified B inputs 
+Xxor2_XB ALUFN[0]#32 B[31:0] XB[31:0] xor2
+
+* Code for the first adder 
+Xfirst A[0] XB[0] ALUFN[0] S[0] C[0] FA
+
+* Code for remainder
+Xadder_remain A[31:1] XB[31:1] C[30:0] S[31:1] C[31:1] FA
+
+.ends
+
+.subckt FA a b ci s co
+* find the sum
+Xxor2_ab a b 1 xor2
+Xxor2_abc 1 ci s xor2
+
+* find the carry out 
+Xnand2_ab a b 2 nand2
+Xnand2_bc b ci 3 nand2
+Xnand2_ac a ci 4 nand2
+xnand3 2 3 4 co nand3 
+
+.ends 
+
+* construct a 5 input mux (Part2A.0)
+.subckt mux5 pcsel[2:0] inc[31:0] bt[31:0] jt[31:0] illop[31:0] xaddr[31:0] mid[31:0] 
+Xmux4_first_filter pcsel[0]#32 pcsel[1]#32 inc[31:0] jt[31:0] bt[31:0] illop[31:0] filter_one[31:0] mux4
+Xmux2_second_filter pcsel[2]#32 filter_one[31:0] xaddr[31:0] mid[31:0] mux2
+.ends 
 
 
 
