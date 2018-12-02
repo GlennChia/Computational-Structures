@@ -1,6 +1,6 @@
 * From part 1, add an additional input which is z
 * From part 1, add an additional output which is pcsel[2:0] and wasel
-.subckt ctl reset z id[31:26] ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr pcsel[2:0] wasel
+.subckt ctl reset z id[31:26] ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr asel pcsel[2:0] wasel
 
 * PART 2(F) Code for the branching 
 // The difference between between BNE and BEQ is the 5th bit and 6th bit. BNE(10), BEQ(01)
