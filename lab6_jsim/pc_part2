@@ -1,6 +1,6 @@
 * Add the following inputs: pcsel[2:0], jt[31:0] id[31:0]. jt[31:0] os from radata[31:0]
 * Add the following outputs: inc[31:0] bt[31:0] 
-.subckt pc clk reset pcsel[2:0], jt[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0] 
+.subckt pc clk reset pcsel[2:0] jt[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0] 
 
 * PART 2A0 Use the 5 input Mux to select the mid 
 Xmux5 pcsel[2:0] inc[31:0] bt[31:0] ia_new[31:0] illop[31:0] xaddr[31:0] post5_mux[31:0] mux5
