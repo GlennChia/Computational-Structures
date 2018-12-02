@@ -11,25 +11,40 @@
 Xnor_5 id[31] 0 fs nor2
 // Check for the next 3 bits which are 1 
 Xand_4_2 id[30] id[29] id[28] sfs and3
-
-// Check for BNE. Last 2 bits are 10
-Xand_1_bne id[27] vdd bne_1 and2
-Xnor_0_bne id[26] 0 bne_0 nor2
-// Overall BNE 
-Xbne fs sfs bne_1 bne_0 bne_o and4  // this will be 1 if it is BNE 
-// Check for Z = 1
-Xand_z_bne z bne_o bne_f and2
+// Determine what we have so far
+Xand_check fs sfs first4 and2
 
 // Check for BEQ. Last 2 bits are 01
-Xnor_1_beq id[27] 0 beq_1 nor2
-Xand_0_beq id[26] vdd beq_0 and2
+// Xnor_1_beq id[27] 0 beq_1 nor2
+// Xand_0_beq id[26] vdd beq_0 and2
 // Overeall BEQ
-Xbeq fs sfs beq_1 beq_0 beq_o and4
-// Check for Z. Branch if Z=1
-Xand_z z beq_0 beq_f and2
+// Xbeq fs sfs beq_1 beq_0 beq_o and4  // beq_o will be 1 if it is beq
 
-Xbnechoose bne_f#3 pcsel_old[2:0] 0#3 pcsel_bne[2:0] mux2
-Xbeqchoose beq_f#3 pcsel_bne[2:0] 0#2 vdd pcsel[2:0] mux2
+// Check for BNE. Last 2 bits are 10
+// Xand_1_bne id[27] vdd bne_1 and2
+// Xnor_0_bne id[26] 0 bne_0 nor2
+// Overall BNE 
+// Xbne fs sfs bne_1 bne_0 bne_o nand4  // bne_o will be 0 if it is BNE 
+
+// Determine branching conditions 
+
+// Check if either BNE or BEQ
+// Xxor2 bne_o beq_o either xor2
+
+// Check for Z == 1 and beq_o == 1
+// Xand_z z beq_0 beq_f and2  // Result will be 1 if it is BEQ and Z=1
+
+// Check for Z == 0 and bne_o == 0
+// Xand_z_bne z bne_o bne_f nor2  // Result will be 1 if it is BNE and Z=0
+
+//  Use the last bit to determine the branch. BEQ[0] == 1 BNE[0] == 0
+Xlastbit id[26] z integrate_z xnor2
+
+// Determine if branch 
+Xand_bt first4 integrate_z bt_cond and2
+
+// Set the branch or not 
+Xfinal bt_cond#3 pcsel_old[2:0] 0#2 vdd pcsel[2:0] mux2
 
 * Force WR to 0 when RESET = 1 
 Xw_1 reset xwr 0 wr mux2
