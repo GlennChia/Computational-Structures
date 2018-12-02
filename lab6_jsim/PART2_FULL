@@ -12,9 +12,8 @@
 *Part 2A4
 * Code for asel
 // Set bit 31 of the BT to 0
-.connect bt[31] 0
 // Code for the asel mux. If 0 choose radata[31:0]. If 1 choose bt[31:0]
-Xasel asel#32 radata[31:0] bt[31:0] a[31:0] mux2 
+Xasel asel#32 radata[31:0] 0 bt[30:0] a[31:0] mux2 
 
 * Part 2B. Code for WASEL
 // XP is register 30 which is 11110
