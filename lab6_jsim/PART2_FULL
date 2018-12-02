@@ -88,25 +88,25 @@ Xalu alufn[5:0] radata[31:0] b[31:0] ma[31:0] alu
 .subckt pc clk reset pcsel[2:0] jt[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0] 
 
 * PART 2A0 Use the 5 input Mux to select the mid 
-Xmux5 pcsel[2:0] inc[31:0] bt[31:0] ia_new[31:0] illop[31:0] xaddr[31:0] post5_mux[31:0] mux5
+Xmux5 pcsel[2:0] inc[31:0] ia[31] bt[30:0] ia_new[31:0] illop[31:0] xaddr[31:0] post5_mux[31:0] mux5
 
 * PART 2A1 Creating the addresses for the PC (Part2A.1)
 // 8 in binary is 1000
 // 4 in binary is 0010
 // Reset == 0x80000000 == 1000 0#28
-// Exceptions == 0x80000004 == 1000 0#24 0010
-// Interrupts == 0x80000008 == 1000 0#24 1000
+// Exceptions (Illop) == 0x80000004 == 1000 0#24 0100
+// Interrupts (xaddr)== 0x80000008 == 1000 0#24 1000
 // previously used Xforce a constant1
-// Things that connect to a are reset_addr[31], xaddr[31], xaddr[1], illop[3]
-.connect a reset_addr[31] xaddr[31] xaddr[1] illop[3]
-.connect 0 reset_addr[30:0] xaddr[30:2] xaddr[0] illop[31:4] illop[2:0]
+// Things that connect to a are reset_addr[31], illop[31], illop[2], xaddr[31], xaddr[3]
+.connect a reset_addr[31] illop[31] illop[2] xaddr[31] xaddr[3]
+.connect 0 reset_addr[30:0] illop[30:3] illop[1:0] xaddr[30:4] xaddr[2:0]
 
 * PART 2A2 Connect bit31 of the PC+4 and the branch offset-inputs to PC31 
 // PC31 is ia[31] 
 // Connect bit 31 of the PC+4 to PC31
-.connect inc[31] ia[31]
+.connect inc[31] ia[31]  // Also done in Part 2A5 for WDSEL
 // Connect bit 31 of the BT to PC31
-.connect ia[31] bt[31]
+// .connect ia[31] bt[31] // This produces an error. Do in the mux instead 
 
 * PART 2A3 and 2D
 * Adding logic to bit31 of the JT input (Part2A.3)
@@ -116,8 +116,6 @@ Xjt_logic ia[31] jt[31] ia_new[31] and2
 // Copy the other untouched bits over 
 Xlow16bsel jt[30:2] ia_new[30:2] knex
 
-* PART 2A5 Connect bit 31 of the PC+4 input to the WDSEL
-.connect inc[31] ia[31]
 
 * PART 2C
 * c comes from the first 16 bits of the instruction memory. use id[31:0]
@@ -170,7 +168,7 @@ xnand3 2 3 4 co nand3
 
 * construct a 5 input mux (Part2A.0)
 .subckt mux5 pcsel[2:0] inc[31:0] bt[31:0] jt[31:0] illop[31:0] xaddr[31:0] mid[31:0] 
-Xmux4_first_filter pcsel[0]#32 pcsel[1]#32 inc[31:0] jt[31:0] bt[31:0] illop[31:0] filter_one[31:0] mux4
+Xmux4_first_filter pcsel[0]#32 pcsel[1]#32 inc[31:0] bt[31:0] jt[31:0] illop[31:0] filter_one[31:0] mux4
 Xmux2_second_filter pcsel[2]#32 filter_one[31:0] xaddr[31:0] mid[31:0] mux2
 .ends 
 
