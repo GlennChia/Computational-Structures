@@ -24,7 +24,7 @@ Xwasel wasel#5 id[25:21] xp[4:0] wa[4:0] mux2
 * Part 2D. Get the Z with nor32
 Xor_8 radata[7:0] radata[15:8] radata[23:16] radata[31:24] out[7:0] or4
 Xor_4 out[7:4] out[3:0] out2[1:0] or4
-Xnor2_z out2[0] out2[1] Z nor2
+Xnor2_z out2[0] out2[1] z nor2
 
 * Part 2E. WDSEL Mux
 * only need for 01 (ALU output) and 10 (Read data from main memory) and 00 which is inc[31:0]
@@ -130,7 +130,7 @@ Xlow16bt id_shift[17:2] id[15:0] knex
 Xfinal_bt 0 inc[31:0] id_shift[31:0] bt[31:0] adder32only
 
 * Code for the reset
-Xres reset#32 post_5mux[31:0] 0#32 mid[31:0] mux2
+Xres reset#32 post5_mux[31:0] 0#32 mid[31:0] mux2
 
 * Code for the dreg 
 Xdreg mid[31:0] clk#32 ia[31:0] dreg
