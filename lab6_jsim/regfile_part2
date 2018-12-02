@@ -1,5 +1,5 @@
-.subckt regfile clk werf ra2sel ra[4:0] rb[4:0] rc[4:0]
-+ wdata[31:0] radata[31:0] rbdata[31:0] wa[4:0]
+* Only change is to add wa[4:0] as an input and this comes from the wasel mux from beta
+.subckt regfile clk werf ra2sel ra[4:0] rb[4:0] rc[4:0] wdata[31:0] radata[31:0] rbdata[31:0] wa[4:0]
 
 * For the ra2sel 
 Xselect ra2sel#5 rb[4:0] rc[4:0] ra2mux[4:0] mux2 
