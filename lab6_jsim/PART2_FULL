@@ -2,17 +2,17 @@
 .include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\stdcell.jsim"
 .include "C:\Users\Glenn Chia\Desktop\TERM4\50.002 Computation Structures\Software Tools\50002\lab6checkoff.jsim"
 
-// from jsim documentation
+// From jsim documentation 
 .subckt knex a b
-.connect a b
+.connect a b 
 .ends
 
 .subckt beta clk reset irq ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
 
-*Part 2A4
+*Part 2A4 and 2D (Partial)
 * Code for asel
-// Set bit 31 of the BT to 0
-// Code for the asel mux. If 0 choose radata[31:0]. If 1 choose bt[31:0]
+// Set bit 31 of the BT to 0. Dont use.connect, produces an error
+// Code for the asel mux. If 0 choose radata[31:0]. If 1 choose bt[31:0].
 Xasel asel#32 radata[31:0] 0 bt[30:0] a[31:0] mux2 
 
 * Part 2B. Code for WASEL
@@ -31,7 +31,7 @@ Xnor2_z out2[0] out2[1] z nor2
 // ma[31:0] is the output of the ALU 
 // mrd[31:0] is the read data from the data memory 
 // mwd[31:0] is the write data into the main memory 
-Xwdsel wdsel[1]#32 wdsel[0]#32 inc[31:0] mrd[31:0] ma[31:0] 0#32  wdata[31:0] mux4
+Xwdsel wdsel[0]#32 wdsel[1]#32 inc[31:0] ma[31:0] mrd[31:0] 0#32  wdata[31:0] mux4
 
 * Part 2(F) IRQ Implementation
 // Interrupts occur when the ia[31] which is PC31 == 0 and irq == 1
@@ -52,7 +52,8 @@ Xinterrupt_WDSEL cont#2 0#2 wdsel_ctl[1:0] wdsel[1:0] mux2
 // Set WR to 0. 0==0 
 Xinterrupt_WR cont 0 wr_ctl wr mux2
 
-* From part 1 
+
+* From part 1 (Circuit calls and bselmux)
 
 * sign extend the low order 16 bits of the instruction. This instruction is the D on the Instruction Memory 
 // We are sign extending the lower 16 bits of id[31:0]
@@ -64,9 +65,9 @@ Xlow16bsel inst[15:0] id[15:0] knex
 Xbsel bsel#32 mwd[31:0] inst[31:0] b[31:0] mux2
 
 * Calling all the subcircuits 
-// .subckt pc clk reset pcsel[2:0] jt[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0] 
 // radata[31:0] passed into the PC to be modified later by the jt code
 // id[31:0] will be modified in the PC file as well
+// .subckt pc clk reset pcsel[2:0] jt[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0]
 Xpc clk reset pcsel[2:0] radata[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0] pc
 
 // Add the results from wasel mux wa[4:0]
@@ -75,24 +76,26 @@ Xregfile clk werf ra2sel id[20:16] id[15:11] id[25:21] wdata[31:0] radata[31:0] 
 // Add z, asel, pcsel_ctl[2:0], wasel_ctl
 Xctl reset z id[31:26] ra2sel bsel alufn[5:0] wdsel_ctl[1:0] werf_ctl moe wr_ctl asel pcsel_ctl[2:0] wasel_ctl ctl
 
-Xalu alufn[5:0] radata[31:0] b[31:0] ma[31:0] alu
-
+// Edited from part 1 to remove z v and n since z has name clash
+Xalu alufn[5:0] a[31:0] b[31:0] ma[31:0] alu
 
 .ends
 
 
 
 
-* Add the following inputs: pcsel[2:0], jt[31:0] id[31:0]. jt[31:0] os from radata[31:0]
-* Add the following outputs: inc[31:0] bt[31:0] 
-.subckt pc clk reset pcsel[2:0] jt[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0] 
 
-* PART 2A0 Use the 5 input Mux to select the mid 
+
+* Add the following inputs: pcsel[2:0], jt[31:0] id[31:0]. jt[31:0] is from radata[31:0]
+* Add the following outputs: inc[31:0] bt[31:0] 
+.subckt pc clk reset pcsel[2:0] jt[31:0] id[31:0] ia[31:0] inc[31:0] bt[31:0]
+
+* PART 2A0 Use the 5 input Mux to select the entry into pc dreg 
 Xmux5 pcsel[2:0] inc[31:0] ia[31] bt[30:0] ia_new[31:0] illop[31:0] xaddr[31:0] post5_mux[31:0] mux5
 
 * PART 2A1 Creating the addresses for the PC (Part2A.1)
 // 8 in binary is 1000
-// 4 in binary is 0010
+// 4 in binary is 0100
 // Reset == 0x80000000 == 1000 0#28
 // Exceptions (Illop) == 0x80000004 == 1000 0#24 0100
 // Interrupts (xaddr)== 0x80000008 == 1000 0#24 1000
@@ -116,7 +119,6 @@ Xjt_logic ia[31] jt[31] ia_new[31] and2
 // Copy the other untouched bits over 
 Xlow16bsel jt[30:2] ia_new[30:2] knex
 
-
 * PART 2C
 * c comes from the first 16 bits of the instruction memory. use id[31:0]
 // Connect the lower 2 bits of the id_shift
@@ -128,17 +130,16 @@ Xlow16bt id_shift[17:2] id[15:0] knex
 Xfinal_bt 0 inc[31:0] id_shift[31:0] bt[31:0] adder32only
 
 * Code for the reset
-Xres reset#32 post5_mux[31:0] 0#32 mid[31:0] mux2
-
+Xres reset#32 post5_mux[31:0] reset_addr[31:0] mid[31:0] mux2
 * Code for the dreg 
 Xdreg mid[31:0] clk#32 ia[31:0] dreg
 
 Xforce a constant1
 
 * Code for the increment by 4
-Xincrease 0 ia[31:0] 0#29 a 0#2 inc[31:0] adder32only
+Xincrease 0 ia[31:0] 0#29 vdd 0#2 blank inc[30:0] adder32only  // using vdd or 0 instead of blank gives a tristate error (Already connected bit 31 to ia[31]
 
-.ends 
+.ends
 
 .subckt adder32only ALUFN[0] A[31:0] B[31:0] S[31:0]
 
@@ -153,19 +154,6 @@ Xadder_remain A[31:1] XB[31:1] C[30:0] S[31:1] C[31:1] FA
 
 .ends
 
-.subckt FA a b ci s co
-* find the sum
-Xxor2_ab a b 1 xor2
-Xxor2_abc 1 ci s xor2
-
-* find the carry out 
-Xnand2_ab a b 2 nand2
-Xnand2_bc b ci 3 nand2
-Xnand2_ac a ci 4 nand2
-xnand3 2 3 4 co nand3 
-
-.ends 
-
 * construct a 5 input mux (Part2A.0)
 .subckt mux5 pcsel[2:0] inc[31:0] bt[31:0] jt[31:0] illop[31:0] xaddr[31:0] mid[31:0] 
 Xmux4_first_filter pcsel[0]#32 pcsel[1]#32 inc[31:0] bt[31:0] jt[31:0] illop[31:0] filter_one[31:0] mux4
@@ -176,8 +164,10 @@ Xmux2_second_filter pcsel[2]#32 filter_one[31:0] xaddr[31:0] mid[31:0] mux2
 
 
 
-.subckt regfile clk werf ra2sel ra[4:0] rb[4:0] rc[4:0]
-+ wdata[31:0] radata[31:0] rbdata[31:0] wa[4:0]
+
+
+* Only change is to add wa[4:0] as an input and this comes from the wasel mux from beta
+.subckt regfile clk werf ra2sel ra[4:0] rb[4:0] rc[4:0] wdata[31:0] radata[31:0] rbdata[31:0] wa[4:0]
 
 * For the ra2sel 
 Xselect ra2sel#5 rb[4:0] rc[4:0] ra2mux[4:0] mux2 
@@ -204,6 +194,14 @@ Xmux2b check2#32 bdata[31:0] 0#32 rbdata[31:0] mux2
 Xand4 a[4:1] d and4
 Xand2 d a[0] c and2
 .ends
+
+
+
+
+
+
+
+
 
 * From part 1, add an additional input which is z
 * From part 1, add an additional output which is pcsel[2:0] and wasel
@@ -257,6 +255,7 @@ Xfinal bt_cond#3 pcsel_old[2:0] 0#2 vdd pcsel[2:0] mux2
 Xw_1 reset xwr 0 wr mux2
 
 * Modify the pcsel to pcsel_old just for branching
+* Now the blank opcodes must be changed from part 1 
 Xctl vdd 0 0 id[31:26] // one read port 
 + pcsel_old[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe xwr 
 + $memory width=18 nlocations=64 contents=( 
@@ -335,6 +334,14 @@ Xctl vdd 0 0 id[31:26] // one read port
 +)
 
 .ends
+
+
+
+
+
+
+
+
 
 .subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] 
 
@@ -422,3 +429,17 @@ XrightA5 B[0]#32 ZRA[31:0] A[31]#1 ZRA[31:1] SRA[31:0] mux2
 Xcontrol ALUFN[1]#32 ALUFN[0]#32 SL[31:0] 0#32 SR[31:0] SRA[31:0] shift[31:0] mux4
 
 .ends
+
+.subckt FA a b ci s co
+* find the sum
+Xxor2_ab a b 1 xor2
+Xxor2_abc 1 ci s xor2
+
+* find the carry out 
+Xnand2_ab a b 2 nand2
+Xnand2_bc b ci 3 nand2
+Xnand2_ac a ci 4 nand2
+xnand3 2 3 4 co nand3 
+
+.ends 
+
