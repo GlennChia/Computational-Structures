@@ -50,6 +50,7 @@ Xfinal bt_cond#3 pcsel_old[2:0] 0#2 vdd pcsel[2:0] mux2
 Xw_1 reset xwr 0 wr mux2
 
 * Modify the pcsel to pcsel_old just for branching
+* Now the blank opcodes must be changed from part 1 
 Xctl vdd 0 0 id[31:26] // one read port 
 + pcsel_old[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe xwr 
 + $memory width=18 nlocations=64 contents=( 
