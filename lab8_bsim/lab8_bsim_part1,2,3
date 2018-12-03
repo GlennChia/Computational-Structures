@@ -773,7 +773,6 @@ Count3: LONG(0)
 
 P3Start:
   GetMouse() | Call Mouse 
-  | LD(R0,0,R1) | Load the value of R0 into R1
   MOVE(R0,R1)
   WrMsg()
 	.text "\nClick at x ="
@@ -782,7 +781,6 @@ P3Start:
   WrMsg()
 	.text ", y="
   MOVE(R1,R0)
-  | LD(R1,0,R0) | Load the value of R0 into R1
   SHLC(r0, 16, r0)
   SHRC(r0, 16, r0) | Get the y part 
   HexPrt() | Prints the contents of R0 which is now y
