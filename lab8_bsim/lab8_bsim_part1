@@ -48,7 +48,7 @@
 . = VEC_KBD
 	BR(I_Kbd)	| on Keyboard interrupt
 . = VEC_MOUSE
-	BR(I_BadInt)	| on mouse interrupt
+	BR(I_Msd)	| on mouse interrupt
 
 ||| The following macro is the first instruction to be entered for each
 ||| asynchronous I/O interrupt handler.	 It adjusts XP (the interrupted
@@ -264,6 +264,7 @@ I_Msd:	ENTER_INTERRUPT()		| Adjust the PC!
 	CLICK()			| Read the character,
 	ST(r0,Mouse_State)		| save its code.
 	LD(UserMState, r0)		| restore r0, and
+	.breakpoint
 	JMP(xp)				| and return to the user.
 	
 
